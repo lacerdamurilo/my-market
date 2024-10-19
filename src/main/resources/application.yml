@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: my-market
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    username: postgres
+    password: pass
+    url: jdbc:postgresql://localhost:5432/postgres
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    driver-class-name: ${spring.datasource.driver-class-name}
+    url: ${spring.datasource.url}
+    user: ${spring.datasource.username}
+    password: ${spring.datasource.password}
+  jpa:
+    generate-ddl: true
+    show-sql: true
+
+springdoc:
+  swagger-ui:
+    path: '/swagger-ui'
+  openapi:
+    info:
+      title: 'My Market'
+      version: '1.0.0'
+      description: 'API for product registration and listing'
+  default-produces-media-type: application/json
