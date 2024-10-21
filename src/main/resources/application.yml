@@ -17,6 +17,8 @@ spring:
   jpa:
     generate-ddl: true
     show-sql: true
+    hibernate:
+      ddl-auto: none
 
 springdoc:
   swagger-ui:
