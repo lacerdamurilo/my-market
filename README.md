@@ -5,3 +5,7 @@
 - Rodar o app :)
 
 #### Link do acesso para testar: http://localhost:8080/swagger-ui
+Para os serviços que não são a listagem, é preciso logar no swagger.
+<br> Para isso, aperte no cadeado da interface e digite as credenciais:
+<br> <b>Login: </b>admin
+<br> <b>Senha: </b>password
