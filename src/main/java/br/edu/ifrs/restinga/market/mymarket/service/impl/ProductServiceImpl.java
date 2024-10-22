@@ -2,6 +2,7 @@ package br.edu.ifrs.restinga.market.mymarket.service.impl;
 
 import br.edu.ifrs.restinga.market.mymarket.model.dto.ProductRequestDTO;
 import br.edu.ifrs.restinga.market.mymarket.model.dto.ProductResponseDTO;
+import br.edu.ifrs.restinga.market.mymarket.model.dto.ProductUpdateRequestDTO;
 import br.edu.ifrs.restinga.market.mymarket.model.entity.Product;
 import br.edu.ifrs.restinga.market.mymarket.repository.ProductRepository;
 import br.edu.ifrs.restinga.market.mymarket.repository.spec.ProductSpecification;
@@ -14,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.Optional;
 
+import static java.util.Objects.isNull;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @Service
@@ -50,11 +52,11 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ProductResponseDTO update(String id, Optional<Double> value, Optional<Integer> quantity) {
+    public ProductResponseDTO update(String id, ProductUpdateRequestDTO request) {
         var product = findById(id);
         product = product.toBuilder()
-                .value(value.orElseGet(product::getValue))
-                .quantity(quantity.orElseGet(product::getQuantity))
+                .value(isNull(request.getValue()) ? product.getValue() : request.getValue())
+                .quantity(isNull(request.getQuantity()) ? product.getQuantity() : request.getQuantity())
                 .build();
         final var updatedProduct = productRepository.save(product);
         return ProductMapper.fromEntity(updatedProduct);

@@ -3,10 +3,12 @@ package br.edu.ifrs.restinga.market.mymarket.controller.impl;
 import br.edu.ifrs.restinga.market.mymarket.controller.ProductController;
 import br.edu.ifrs.restinga.market.mymarket.model.dto.ProductRequestDTO;
 import br.edu.ifrs.restinga.market.mymarket.model.dto.ProductResponseDTO;
+import br.edu.ifrs.restinga.market.mymarket.model.dto.ProductUpdateRequestDTO;
 import br.edu.ifrs.restinga.market.mymarket.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,7 +34,7 @@ public class ProductControllerImpl implements ProductController {
     @Override
     @PostMapping("create")
     @Operation(summary = "Register products - Login required", security = @SecurityRequirement(name = "basicAuth"))
-    public ProductResponseDTO create(ProductRequestDTO request) {
+    public ProductResponseDTO create(@Valid @RequestBody ProductRequestDTO request) {
         return productService.create(request);
     }
 
@@ -47,8 +49,7 @@ public class ProductControllerImpl implements ProductController {
     @PutMapping("update/{id}")
     @Operation(summary = "Update products value and quantity - Login required", security = @SecurityRequirement(name = "basicAuth"))
     public ProductResponseDTO update(@PathVariable(name = "id") String id,
-                                     @RequestParam(required = false) Optional<Double> value,
-                                     @RequestParam(required = false) Optional<Integer> quantity) {
-        return productService.update(id, value, quantity);
+                                     @Valid @RequestBody ProductUpdateRequestDTO request) {
+        return productService.update(id, request);
     }
 }
