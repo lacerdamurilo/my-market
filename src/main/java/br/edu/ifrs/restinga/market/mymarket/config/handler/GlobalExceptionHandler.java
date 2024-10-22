@@ -12,6 +12,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Objects;
 
 import static org.springframework.http.HttpStatus.*;
 
@@ -21,11 +22,13 @@ public class GlobalExceptionHandler {
     private final static Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleAllExceptions(Exception ex, WebRequest request) {
+    public ResponseEntity<ErrorResponse> handleAllExceptions(Exception ex) {
+        final var className = ex.getStackTrace()[0].getClassName().split("\\.");
+        final var lineNumber = ex.getStackTrace()[0].getLineNumber();
         ErrorResponse errorResponse = new ErrorResponse(
                 LocalDateTime.now(),
                 ex.getMessage(),
-                request.getDescription(false),
+                String.format("%s:%s", className[className.length - 1], lineNumber),
                 INTERNAL_SERVER_ERROR.value()
         );
 
@@ -74,10 +77,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
+        final var messageList = Arrays.stream(
+                Objects.requireNonNull(ex.getDetailMessageArguments())
+        ).map(Object::toString).filter(s -> !s.isBlank()).toList();
+        final var message = String.join("; ", messageList);
         ErrorResponse errorResponse = new ErrorResponse(
                 LocalDateTime.now(),
-                "Bad request: " + ex.getMessage(),
-                ex.getBindingResult().toString(),
+                ex.getBody().getDetail(),
+                message,
                 BAD_REQUEST.value()
         );
 

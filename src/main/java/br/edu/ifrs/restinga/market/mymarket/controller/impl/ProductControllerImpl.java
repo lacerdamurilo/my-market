@@ -7,6 +7,7 @@ import br.edu.ifrs.restinga.market.mymarket.service.ProductService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,7 +33,7 @@ public class ProductControllerImpl implements ProductController {
     @Override
     @PostMapping("create")
     @Operation(summary = "Register products - Login required", security = @SecurityRequirement(name = "basicAuth"))
-    public ProductResponseDTO create(ProductRequestDTO request) {
+    public ProductResponseDTO create(@Valid ProductRequestDTO request) {
         return productService.create(request);
     }
 
