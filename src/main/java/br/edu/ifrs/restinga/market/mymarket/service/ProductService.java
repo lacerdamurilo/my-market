@@ -2,6 +2,7 @@ package br.edu.ifrs.restinga.market.mymarket.service;
 
 import br.edu.ifrs.restinga.market.mymarket.model.dto.ProductRequestDTO;
 import br.edu.ifrs.restinga.market.mymarket.model.dto.ProductResponseDTO;
+import br.edu.ifrs.restinga.market.mymarket.model.dto.ProductUpdateRequestDTO;
 import br.edu.ifrs.restinga.market.mymarket.model.entity.Product;
 
 import java.util.List;
@@ -17,5 +18,5 @@ public interface ProductService {
 
     void delete(String id);
 
-    ProductResponseDTO update(String id, Optional<Double> value, Optional<Integer> quantity);
+    ProductResponseDTO update(String id, ProductUpdateRequestDTO request);
 }

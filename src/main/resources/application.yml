@@ -1,3 +1,6 @@
+server:
+  port: 8080
+
 spring:
   application:
     name: my-market
@@ -17,6 +20,11 @@ spring:
   jpa:
     generate-ddl: true
     show-sql: true
+    hibernate:
+      ddl-auto: none
+  web:
+    locale: en
+    locale-resolver: fixed
 
 springdoc:
   swagger-ui:

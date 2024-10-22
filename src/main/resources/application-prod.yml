@@ -1,0 +1,6 @@
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    username: market_owner
+    password: wuGdp8N7CXAt
+    url: jdbc:postgresql://ep-mute-bush-a8vsq997.eastus2.azure.neon.tech/market?sslmode=require
