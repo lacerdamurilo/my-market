@@ -1,6 +1,7 @@
 package br.edu.ifrs.restinga.market.mymarket.model.dto;
 
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,18 +11,10 @@ import lombok.NoArgsConstructor;
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductRequestDTO {
+public class ProductUpdateRequestDTO {
 
-    @NotBlank
-    @Size(max = 255)
-    private String name;
-    @NotBlank
-    @Size(max = 100)
-    private String type;
-    @NotNull
     @Positive
     private Double value;
-    @NotNull
     @PositiveOrZero
     private Integer quantity;
 
