@@ -1,23 +1,18 @@
 package br.edu.ifrs.restinga.market.mymarket.controller.impl;
 
-import br.edu.ifrs.restinga.market.mymarket.model.entity.Product;
-import br.edu.ifrs.restinga.market.mymarket.repository.ProductRepository;
-import br.edu.ifrs.restinga.market.mymarket.repository.spec.ProductSpecification;
+import com.jayway.jsonpath.JsonPath;
 import io.vavr.control.Try;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.List;
-import java.util.Optional;
-
 import static br.edu.ifrs.restinga.market.mymarket.creator.product.ProductCreator.*;
-import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -25,19 +20,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ProductControllerImplTest {
 
 
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
-    private ProductRepository productRepository;
-
     public static final String USER = "admin";
     public static final String PASS = "password";
+    public static String ID = "";
 
     @Test
+    @Order(1)
     void find_returnsEmptyList_whenNoProductsAreFound() {
         Try.run(
                 () -> mockMvc.perform(
@@ -54,43 +49,54 @@ public class ProductControllerImplTest {
     }
 
     @Test
+    @Order(3)
     void find_ListOfProducts_whenSuccessful() {
-        final var captor = ArgumentCaptor.forClass(ProductSpecification.class);
-
-        when(productRepository.findAll(captor.capture())).thenReturn(List.of(PRODUCT_1, PRODUCT_2));
-
-        Try.run(
-                () -> mockMvc.perform(get("/products/find"))
-                        .andExpect(status().isOk())
-                        .andExpect(jsonPath("$").isArray())
-                        .andExpect(jsonPath("$[0]").value(PRODUCT_RESPONSE_DTO_1))
-                        .andExpect(jsonPath("$[1]").value(PRODUCT_RESPONSE_DTO_2))
-        ).onFailure(throwable -> {
-            throw new RuntimeException(throwable);
-        });
-    }
-
-    @Test
-    void create_savesProduct_whenSuccessful() {
-        final var captor = ArgumentCaptor.forClass(Product.class);
-
-        when(productRepository.save(captor.capture())).thenReturn(PRODUCT_1);
-
         Try.run(
                 () -> mockMvc.perform(
-                                post("/products/create")
-                                        .contentType(MediaType.APPLICATION_JSON)
-                                        .content(PRODUCT_REQUEST_JSON_1)
-                                        .with(httpBasic(USER, PASS))
+                                get("/products/find")
+                                        .param("name", PRODUCT_1.getName())
+                                        .param("type", PRODUCT_1.getType())
                         )
-                        .andExpect(status().isCreated())
-                        .andExpect(jsonPath("$").value(PRODUCT_RESPONSE_DTO_1))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$").isArray())
+                        .andExpect(jsonPath("$[0].id").value(ID))
+                        .andExpect(jsonPath("$[0].name").value(PRODUCT_RESPONSE_DTO_1.getName()))
+                        .andExpect(jsonPath("$[0].type").value(PRODUCT_RESPONSE_DTO_1.getType()))
+                        .andExpect(jsonPath("$[0].value").value(PRODUCT_RESPONSE_DTO_1.getValue()))
+                        .andExpect(jsonPath("$[0].quantity").value(PRODUCT_RESPONSE_DTO_1.getQuantity()))
         ).onFailure(throwable -> {
             throw new RuntimeException(throwable);
         });
     }
 
     @Test
+    @Order(2)
+    void create_savesProduct_whenSuccessful() {
+        Try.run(
+                () -> {
+                    final var response = mockMvc.perform(
+                                    post("/products/create")
+                                            .contentType(MediaType.APPLICATION_JSON)
+                                            .content(PRODUCT_REQUEST_JSON_1)
+                                            .with(httpBasic(USER, PASS))
+                            )
+                            .andExpect(status().isCreated())
+                            .andExpect(jsonPath("$.name").value(PRODUCT_RESPONSE_DTO_1.getName()))
+                            .andExpect(jsonPath("$.type").value(PRODUCT_RESPONSE_DTO_1.getType()))
+                            .andExpect(jsonPath("$.value").value(PRODUCT_RESPONSE_DTO_1.getValue()))
+                            .andExpect(jsonPath("$.quantity").value(PRODUCT_RESPONSE_DTO_1.getQuantity()))
+                            .andReturn()
+                            .getResponse()
+                            .getContentAsString();
+                    ID = JsonPath.parse(response).read("$.id", String.class);
+                }
+        ).onFailure(throwable -> {
+            throw new RuntimeException(throwable);
+        });
+    }
+
+    @Test
+    @Order(4)
     void create_returns401_whenCredentialsAreInvalid() {
         Try.run(
                 () -> mockMvc.perform(
@@ -106,11 +112,11 @@ public class ProductControllerImplTest {
     }
 
     @Test
+    @Order(10)
     void delete_returns204_whenSuccessful() {
-        when(productRepository.findById(PRODUCT_1.getId())).thenReturn(Optional.of(PRODUCT_1));
         Try.run(
                 () -> mockMvc.perform(
-                                delete("/products/delete/{id}", PRODUCT_1.getId())
+                                delete("/products/delete/{id}", ID)
                                         .with(httpBasic(USER, PASS))
                         )
                         .andExpect(status().isNoContent())
@@ -120,9 +126,10 @@ public class ProductControllerImplTest {
     }
 
     @Test
+    @Order(9)
     void delete_returns401_whenNotLogged() {
         Try.run(
-                () -> mockMvc.perform(delete("/products/delete/{id}", PRODUCT_1.getId()))
+                () -> mockMvc.perform(delete("/products/delete/{id}", ID))
                         .andExpect(status().isUnauthorized())
         ).onFailure(throwable -> {
             throw new RuntimeException(throwable);
@@ -130,10 +137,11 @@ public class ProductControllerImplTest {
     }
 
     @Test
+    @Order(11)
     void delete_returns404_whenProductIsNotFound() {
         Try.run(
                 () -> mockMvc.perform(
-                                delete("/products/delete/{id}", "invalid")
+                                delete("/products/delete/{id}", ID)
                                         .with(httpBasic(USER, PASS))
                         )
                         .andExpect(status().isNotFound())
@@ -143,44 +151,53 @@ public class ProductControllerImplTest {
     }
 
     @Test
+    @Order(6)
     void update_updatesProduct_whenSuccessful() {
-        when(productRepository.findById(PRODUCT_1.getId())).thenReturn(Optional.of(PRODUCT_1));
-        when(productRepository.save(PRODUCT_1)).thenReturn(PRODUCT_1);
         Try.run(
                 () -> mockMvc.perform(
-                                put("/products/update/{id}", PRODUCT_1.getId())
-                                        .contentType(MediaType.APPLICATION_JSON)
-                                        .content(PRODUCT_REQUEST_JSON_1)
-                                        .with(httpBasic(USER, PASS))
-                        )
-                        .andExpect(status().isOk())
-        ).onFailure(throwable -> {
-            throw new RuntimeException(throwable);
-        });
-    }
-
-    @Test
-    void update_updatesProduct_whenValueAndQuantityNotInformed() {
-        when(productRepository.findById(PRODUCT_1.getId())).thenReturn(Optional.of(PRODUCT_1));
-        when(productRepository.save(PRODUCT_1)).thenReturn(PRODUCT_1);
-        Try.run(
-                () -> mockMvc.perform(
-                                put("/products/update/{id}", PRODUCT_1.getId())
+                                put("/products/update/{id}", ID)
                                         .contentType(MediaType.APPLICATION_JSON)
                                         .content(PRODUCT_REQUEST_JSON_2)
                                         .with(httpBasic(USER, PASS))
                         )
                         .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.id").value(ID))
+                        .andExpect(jsonPath("$.name").value(PRODUCT_RESPONSE_DTO_1.getName()))
+                        .andExpect(jsonPath("$.type").value(PRODUCT_RESPONSE_DTO_1.getType()))
+                        .andExpect(jsonPath("$.value").value(PRODUCT_RESPONSE_DTO_2.getValue()))
+                        .andExpect(jsonPath("$.quantity").value(PRODUCT_RESPONSE_DTO_2.getQuantity()))
         ).onFailure(throwable -> {
             throw new RuntimeException(throwable);
         });
     }
 
     @Test
+    @Order(5)
+    void update_updatesProduct_whenValueAndQuantityNotInformed() {
+        Try.run(
+                () -> mockMvc.perform(
+                                put("/products/update/{id}", ID)
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(PRODUCT_REQUEST_JSON_3)
+                                        .with(httpBasic(USER, PASS))
+                        )
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.id").value(ID))
+                        .andExpect(jsonPath("$.name").value(PRODUCT_RESPONSE_DTO_1.getName()))
+                        .andExpect(jsonPath("$.type").value(PRODUCT_RESPONSE_DTO_1.getType()))
+                        .andExpect(jsonPath("$.value").value(PRODUCT_RESPONSE_DTO_1.getValue()))
+                        .andExpect(jsonPath("$.quantity").value(PRODUCT_RESPONSE_DTO_1.getQuantity()))
+        ).onFailure(throwable -> {
+            throw new RuntimeException(throwable);
+        });
+    }
+
+    @Test
+    @Order(7)
     void update_returns401_whenNotLogged() {
         Try.run(
                 () -> mockMvc.perform(
-                                put("/products/update/{id}", PRODUCT_1.getId())
+                                put("/products/update/{id}", ID)
                                         .contentType(MediaType.APPLICATION_JSON)
                                         .content(PRODUCT_REQUEST_JSON_1)
                         )
@@ -191,10 +208,11 @@ public class ProductControllerImplTest {
     }
 
     @Test
+    @Order(8)
     void update_returns404_whenProductIsNotFound() {
         Try.run(
                 () -> mockMvc.perform(
-                                put("/products/update/{id}", PRODUCT_1.getId())
+                                put("/products/update/{id}", "invalid")
                                         .contentType(MediaType.APPLICATION_JSON)
                                         .content(PRODUCT_REQUEST_JSON_1)
                                         .with(httpBasic(USER, PASS))

@@ -11,7 +11,7 @@ public class ProductCreator {
     private static Gson GSON = new Gson();
 
     public static final ProductRequestDTO PRODUCT_REQUEST_DTO_1 = ProductRequestDTO.builder()
-            .name("Apple")
+            .name("Star Fruit")
             .type("Fruit")
             .value(5.99)
             .quantity(100)
@@ -40,6 +40,11 @@ public class ProductCreator {
     public static final String PRODUCT_REQUEST_JSON_1 = GSON.toJson(PRODUCT_REQUEST_DTO_1);
 
     public static final String PRODUCT_REQUEST_JSON_2 = GSON.toJson(
+            PRODUCT_REQUEST_DTO_1.toBuilder().value(PRODUCT_2.getValue()).quantity(PRODUCT_2.getQuantity()).build()
+    );
+
+    public static final String PRODUCT_REQUEST_JSON_3 = GSON.toJson(
             PRODUCT_REQUEST_DTO_1.toBuilder().value(null).quantity(null).build()
     );
+
 }
