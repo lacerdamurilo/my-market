@@ -24,7 +24,6 @@ public class ProductCreator {
             .quantity(90)
             .build();
 
-
     public static final Product PRODUCT_1 = ProductMapper.fromRequest(PRODUCT_REQUEST_DTO_1).toBuilder()
             .id("1")
             .build();
@@ -39,4 +38,8 @@ public class ProductCreator {
     public static final ProductResponseDTO PRODUCT_RESPONSE_DTO_2 = ProductMapper.fromEntity(PRODUCT_2);
 
     public static final String PRODUCT_REQUEST_JSON_1 = GSON.toJson(PRODUCT_REQUEST_DTO_1);
+
+    public static final String PRODUCT_REQUEST_JSON_2 = GSON.toJson(
+            PRODUCT_REQUEST_DTO_1.toBuilder().value(null).quantity(null).build()
+    );
 }

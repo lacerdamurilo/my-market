@@ -14,12 +14,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
+import java.util.Optional;
 
 import static br.edu.ifrs.restinga.market.mymarket.creator.product.ProductCreator.*;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.httpBasic;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -85,6 +85,121 @@ public class ProductControllerImplTest {
                         )
                         .andExpect(status().isCreated())
                         .andExpect(jsonPath("$").value(PRODUCT_RESPONSE_DTO_1))
+        ).onFailure(throwable -> {
+            throw new RuntimeException(throwable);
+        });
+    }
+
+    @Test
+    void create_returns401_whenCredentialsAreInvalid() {
+        Try.run(
+                () -> mockMvc.perform(
+                                post("/products/create")
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(PRODUCT_REQUEST_JSON_1)
+                                        .with(httpBasic("user", "user"))
+                        )
+                        .andExpect(status().isUnauthorized())
+        ).onFailure(throwable -> {
+            throw new RuntimeException(throwable);
+        });
+    }
+
+    @Test
+    void delete_returns204_whenSuccessful() {
+        when(productRepository.findById(PRODUCT_1.getId())).thenReturn(Optional.of(PRODUCT_1));
+        Try.run(
+                () -> mockMvc.perform(
+                                delete("/products/delete/{id}", PRODUCT_1.getId())
+                                        .with(httpBasic(USER, PASS))
+                        )
+                        .andExpect(status().isNoContent())
+        ).onFailure(throwable -> {
+            throw new RuntimeException(throwable);
+        });
+    }
+
+    @Test
+    void delete_returns401_whenNotLogged() {
+        Try.run(
+                () -> mockMvc.perform(delete("/products/delete/{id}", PRODUCT_1.getId()))
+                        .andExpect(status().isUnauthorized())
+        ).onFailure(throwable -> {
+            throw new RuntimeException(throwable);
+        });
+    }
+
+    @Test
+    void delete_returns404_whenProductIsNotFound() {
+        Try.run(
+                () -> mockMvc.perform(
+                                delete("/products/delete/{id}", "invalid")
+                                        .with(httpBasic(USER, PASS))
+                        )
+                        .andExpect(status().isNotFound())
+        ).onFailure(throwable -> {
+            throw new RuntimeException(throwable);
+        });
+    }
+
+    @Test
+    void update_updatesProduct_whenSuccessful() {
+        when(productRepository.findById(PRODUCT_1.getId())).thenReturn(Optional.of(PRODUCT_1));
+        when(productRepository.save(PRODUCT_1)).thenReturn(PRODUCT_1);
+        Try.run(
+                () -> mockMvc.perform(
+                                put("/products/update/{id}", PRODUCT_1.getId())
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(PRODUCT_REQUEST_JSON_1)
+                                        .with(httpBasic(USER, PASS))
+                        )
+                        .andExpect(status().isOk())
+        ).onFailure(throwable -> {
+            throw new RuntimeException(throwable);
+        });
+    }
+
+    @Test
+    void update_updatesProduct_whenValueAndQuantityNotInformed() {
+        when(productRepository.findById(PRODUCT_1.getId())).thenReturn(Optional.of(PRODUCT_1));
+        when(productRepository.save(PRODUCT_1)).thenReturn(PRODUCT_1);
+        Try.run(
+                () -> mockMvc.perform(
+                                put("/products/update/{id}", PRODUCT_1.getId())
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(PRODUCT_REQUEST_JSON_2)
+                                        .with(httpBasic(USER, PASS))
+                        )
+                        .andExpect(status().isOk())
+        ).onFailure(throwable -> {
+            throw new RuntimeException(throwable);
+        });
+    }
+
+    @Test
+    void update_returns401_whenNotLogged() {
+        Try.run(
+                () -> mockMvc.perform(
+                                put("/products/update/{id}", PRODUCT_1.getId())
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(PRODUCT_REQUEST_JSON_1)
+                        )
+                        .andExpect(status().isUnauthorized())
+        ).onFailure(throwable -> {
+            throw new RuntimeException(throwable);
+        });
+    }
+
+    @Test
+    void update_returns404_whenProductIsNotFound() {
+        Try.run(
+                () -> mockMvc.perform(
+                                put("/products/update/{id}", PRODUCT_1.getId())
+                                        .contentType(MediaType.APPLICATION_JSON)
+                                        .content(PRODUCT_REQUEST_JSON_1)
+                                        .with(httpBasic(USER, PASS))
+                        )
+                        .andExpect(status().isNotFound())
         ).onFailure(throwable -> {
             throw new RuntimeException(throwable);
         });
