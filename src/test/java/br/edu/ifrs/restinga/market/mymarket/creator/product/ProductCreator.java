@@ -2,6 +2,7 @@ package br.edu.ifrs.restinga.market.mymarket.creator.product;
 
 import br.edu.ifrs.restinga.market.mymarket.model.dto.ProductRequestDTO;
 import br.edu.ifrs.restinga.market.mymarket.model.dto.ProductResponseDTO;
+import br.edu.ifrs.restinga.market.mymarket.model.dto.ProductUpdateRequestDTO;
 import br.edu.ifrs.restinga.market.mymarket.model.entity.Product;
 import br.edu.ifrs.restinga.market.mymarket.util.mapper.ProductMapper;
 import com.google.gson.Gson;
@@ -24,6 +25,23 @@ public class ProductCreator {
             .quantity(90)
             .build();
 
+    public static final ProductRequestDTO PRODUCT_REQUEST_DTO_3 = ProductRequestDTO.builder()
+            .name("Watermelon")
+            .type("Fruit")
+            .value(-20.0)
+            .quantity(90)
+            .build();
+
+    public static final ProductUpdateRequestDTO PRODUCT_UPDATE_REQUEST_DTO_4 = ProductUpdateRequestDTO.builder()
+            .value(10.0)
+            .quantity(150)
+            .build();
+
+    public static final ProductUpdateRequestDTO PRODUCT_UPDATE_REQUEST_DTO_5 = ProductUpdateRequestDTO.builder()
+            .value(30.0)
+            .quantity(200)
+            .build();
+
     public static final Product PRODUCT_1 = ProductMapper.fromRequest(PRODUCT_REQUEST_DTO_1).toBuilder()
             .id("1")
             .build();
@@ -31,7 +49,6 @@ public class ProductCreator {
     public static final Product PRODUCT_2 = ProductMapper.fromRequest(PRODUCT_REQUEST_DTO_2).toBuilder()
             .id("2")
             .build();
-
 
     public static final ProductResponseDTO PRODUCT_RESPONSE_DTO_1 = ProductMapper.fromEntity(PRODUCT_1);
 
